@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+	<head>
+    	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
+    </head>
+    <body>
+    	<div class="container">
+            <div class="row">
+                <div class="col-md-8 offset-2">
+                    <h1>Secure File Upload</h1>
+                    <form  enctype="application/x-www-form-urlencoded" action="/image/upload" id="form" method="POST">
+                        <img id="output_image" height=50px width=50px\> 
+                        <input type="hidden" id="image" name="image">
+                        <input type="file" accept="image/*" onchange="preview_image(event)">
+                        <button type="submit">Submit</button>
+                    </form>
+                    
+
+                    <div class="container">
+                        <div class="row" id="image-gallery">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script type"text/javascript">
+            async function fetchImages() {
+                let response = await fetch('/images');
+
+                let users = await response.json();
+
+                let imageGallery = document.getElementById('image-gallery');
+
+                users.data.forEach(user => {
+                    let img = document.createElement('img');
+                    let decrypted = CryptoJS.AES.decrypt(user.image, 'Secret');
+                    img.src = decrypted.toString(CryptoJS.enc.Utf8);
+                    img.width = 400;
+                    img.height = 300;
+
+                    let div = document.createElement('div');
+                    div.classList.add('col-md-4');
+                    div.classList.add('ml-2');
+                    div.appendChild(img);
+                    imageGallery.appendChild(div);
+                })
+            }
+
+            fetchImages();
+            function preview_image(event) {
+              var reader = new FileReader();
+              reader.onload = function(){
+                var imgPreview = document.getElementById('output_image');
+                imgPreview.src = reader.result;
+                var encrypted = CryptoJS.AES.encrypt(imgPreview.src, "Secret");
+                document.querySelector('input[type="hidden"]').value = encrypted;
+
+                // let decrypted = CryptoJS.AES.decrypt(encrypted, 'Secret');
+                // console.log('Decryptted', decrypted.toString(CryptoJS.enc.Utf8));
+                // var img = document.getElementById('decrypt_image');
+                // img.src = decrypted.toString(CryptoJS.enc.Utf8);
+              }
+              reader.readAsDataURL(event.target.files[0]);
+            }
+
+          </script>
+    </body>
+</html>
